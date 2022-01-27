@@ -89,27 +89,13 @@ function queues_add(
 		$fields[] = array($account,'eventmemberstatus',($_REQUEST['eventmemberstatus'])?$_REQUEST['eventmemberstatus']:$amp_conf['QUEUES_EVENTS_MEMEBER_STATUS_DEFAULT'],0);
 	}
 
-    foreach($_REQUEST as $key => $value) {
-        switch($key) {
-            case 'cron_minute':
-            case 'cron_dom':
-            case 'cron_dow':
-            case 'cron_hour':
-            case 'cron_month':
-            case 'cron_random':
-            case 'cron_schedule':
-                if (is_array($value)) {
-                    $request_value = implode(',',$value);
-                } else {
-                    $request_value = $value;
-                }
-
-                $fields[] = array($account, $key, $request_value, 0);
-                break;
-            default:
-                break;
-        }
-    }
+	// manage queue stats reset
+	$cron_arr = array("cron_schedule", "cron_random", "cron_month", "cron_minute", "cron_hour", "cron_dow", "cron_dom");
+	foreach ($cron_arr as $key => $value) {
+		if (!empty($_REQUEST[$value])) {
+			$fields[] = array($account, $value, $_REQUEST[$value], 0);
+		}
+	}
 
 	if ($ast_ge_11) {
 		$fields[] = array($account,'autopausebusy',(isset($_REQUEST['autopausebusy']))?$_REQUEST['autopausebusy']:'no',0);
@@ -132,6 +118,11 @@ function queues_add(
 			$fields[] = array($account,'member',$member,$count);
 			$count++;
 		}
+	}
+
+	// set lazymembers when enabled
+	if (!empty($_REQUEST['lazymembers'])) {
+		$fields[] = array($account,'lazymembers', $_REQUEST['lazymembers'], 0);
 	}
 
 	$compiled = $db->prepare('INSERT INTO queues_details (id, keyword, data, flags) values (?,?,?,?)');
