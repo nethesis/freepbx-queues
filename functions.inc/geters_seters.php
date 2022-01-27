@@ -121,6 +121,11 @@ function queues_add(
 		}
 	}
 
+	// set lazymembers when enabled
+	if (!empty($_REQUEST['lazymembers'])) {
+		$fields[] = array($account,'lazymembers', $_REQUEST['lazymembers'], 0);
+	}
+
 	$compiled = $db->prepare('INSERT INTO queues_details (id, keyword, data, flags) values (?,?,?,?)');
 	$result = $db->executeMultiple($compiled,$fields);
 
